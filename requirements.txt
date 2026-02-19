@@ -1,0 +1,36 @@
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+websockets==12.0
+python-multipart==0.0.6
+
+# Twilio
+twilio==8.13.0
+
+# Speech Recognition
+deepgram-sdk==3.2.3
+
+# Text-to-Speech
+elevenlabs==0.2.27
+
+# AI/LLM
+anthropic==0.18.0
+
+# Vector DB & Embeddings
+chromadb==0.4.22
+openai==1.12.0
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.6.0
+pydantic-settings==2.1.0
+aiofiles==23.2.1
+python-json-logger==2.0.7
+
+# Audio Processing
+pydub==0.25.1
+
+# Testing
+pytest==8.0.0
+pytest-asyncio==0.23.4
+httpx==0.26.0

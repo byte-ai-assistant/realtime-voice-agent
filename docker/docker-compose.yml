@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  voice-agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: realtime-voice-agent
+    ports:
+      - "8000:8000"
+    environment:
+      # Server
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      
+      # Twilio
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      
+      # Deepgram (STT)
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      
+      # ElevenLabs (TTS)
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-21m00Tcm4TlvDq8ikWAM}
+      
+      # Anthropic (AI)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      
+      # OpenAI (Embeddings)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Application
+      - KNOWLEDGE_BASE_PATH=./knowledge/sample_kb.json
+      - WEBSOCKET_URL=${WEBSOCKET_URL}
+    
+    volumes:
+      - ../data:/app/data
+      - ../logs:/app/logs
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: voice-agent-network

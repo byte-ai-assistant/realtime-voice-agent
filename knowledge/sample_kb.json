@@ -1,0 +1,154 @@
+{
+  "documents": [
+    {
+      "id": "faq-001",
+      "category": "pricing",
+      "question": "How much does ByteAI cost?",
+      "answer": "ByteAI has two plans: Pro at $99 per month with 10,000 API calls, and Business at $299 per month with unlimited calls. Both include 24/7 support and all features."
+    },
+    {
+      "id": "faq-002",
+      "category": "pricing",
+      "question": "Is there a free trial?",
+      "answer": "Yes! We offer a 14-day free trial with full access to all features. No credit card required to start."
+    },
+    {
+      "id": "faq-003",
+      "category": "features",
+      "question": "What can ByteAI do?",
+      "answer": "ByteAI is an AI assistant that can automate customer support, schedule appointments, answer questions, integrate with your systems, and handle phone calls 24/7."
+    },
+    {
+      "id": "faq-004",
+      "category": "features",
+      "question": "Does ByteAI support phone calls?",
+      "answer": "Yes! ByteAI can answer incoming phone calls, have natural conversations with customers, and take actions like booking appointments or transferring to human support."
+    },
+    {
+      "id": "faq-005",
+      "category": "features",
+      "question": "What languages does ByteAI support?",
+      "answer": "ByteAI currently supports English, Spanish, French, German, and Portuguese. More languages are being added regularly."
+    },
+    {
+      "id": "faq-006",
+      "category": "technical",
+      "question": "What API keys do I need?",
+      "answer": "You'll need API keys from Anthropic (Claude), ElevenLabs (voice), and optionally OpenAI (embeddings). We provide detailed setup instructions in our documentation."
+    },
+    {
+      "id": "faq-007",
+      "category": "technical",
+      "question": "How do I integrate ByteAI with my website?",
+      "answer": "ByteAI provides REST APIs, WebSocket connections, and SDKs for JavaScript, Python, and other languages. Integration typically takes 1-2 hours with our quick start guide."
+    },
+    {
+      "id": "faq-008",
+      "category": "technical",
+      "question": "Is ByteAI secure?",
+      "answer": "Yes! ByteAI uses enterprise-grade encryption, SOC 2 compliance, and stores no customer data by default. All API keys are encrypted and never logged."
+    },
+    {
+      "id": "faq-009",
+      "category": "support",
+      "question": "How do I get help?",
+      "answer": "You can reach our support team 24/7 via email at support@byteai.com, live chat on our website, or by calling this phone number to speak with a human agent."
+    },
+    {
+      "id": "faq-010",
+      "category": "support",
+      "question": "What are your support hours?",
+      "answer": "Our AI assistant is available 24/7. Human support is available Monday through Friday, 9 AM to 6 PM Eastern Time, with emergency support available nights and weekends."
+    },
+    {
+      "id": "faq-011",
+      "category": "account",
+      "question": "How do I upgrade my plan?",
+      "answer": "You can upgrade your plan anytime from your account dashboard. The change takes effect immediately and you're only charged the prorated difference."
+    },
+    {
+      "id": "faq-012",
+      "category": "account",
+      "question": "Can I cancel anytime?",
+      "answer": "Yes, you can cancel your subscription anytime with no penalties. You'll continue to have access until the end of your current billing period."
+    },
+    {
+      "id": "faq-013",
+      "category": "account",
+      "question": "How does billing work?",
+      "answer": "We bill monthly via credit card or ACH. Enterprise customers can request annual billing with a discount. All plans include detailed usage analytics."
+    },
+    {
+      "id": "faq-014",
+      "category": "appointments",
+      "question": "How do I schedule an appointment?",
+      "answer": "I can help you schedule an appointment right now! Just tell me your preferred date and time, and I'll book it for you."
+    },
+    {
+      "id": "faq-015",
+      "category": "appointments",
+      "question": "Can I reschedule my appointment?",
+      "answer": "Yes, you can reschedule by calling this number or through your account portal. Please provide at least 24 hours notice when possible."
+    },
+    {
+      "id": "faq-016",
+      "category": "appointments",
+      "question": "What are your appointment hours?",
+      "answer": "Appointments are available Monday through Friday, 9 AM to 5 PM Eastern Time. We also offer limited weekend slots for urgent needs."
+    },
+    {
+      "id": "faq-017",
+      "category": "troubleshooting",
+      "question": "The AI isn't responding correctly",
+      "answer": "If the AI seems confused, try rephrasing your question more simply. If the issue persists, I can transfer you to a human support agent who can help."
+    },
+    {
+      "id": "faq-018",
+      "category": "troubleshooting",
+      "question": "I'm getting API errors",
+      "answer": "API errors are usually due to incorrect credentials or rate limits. Check that your API keys are valid and you haven't exceeded your plan's limits. Contact support if issues persist."
+    },
+    {
+      "id": "faq-019",
+      "category": "troubleshooting",
+      "question": "The voice quality is poor",
+      "answer": "Poor voice quality can be caused by network issues. Try using a better internet connection. If the problem continues, let me know and I'll create a support ticket."
+    },
+    {
+      "id": "faq-020",
+      "category": "technical",
+      "question": "What's the response time?",
+      "answer": "ByteAI typically responds in under 2 seconds from when you finish speaking. Response time depends on your internet connection and complexity of the question."
+    },
+    {
+      "id": "faq-021",
+      "category": "features",
+      "question": "Can ByteAI transfer calls?",
+      "answer": "Yes! If you need to speak with a human or if I can't help with something, I can transfer your call to our support team immediately."
+    },
+    {
+      "id": "faq-022",
+      "category": "features",
+      "question": "Does ByteAI remember past conversations?",
+      "answer": "ByteAI remembers context within a single call session. For account-specific information, it can look up your history using your phone number or account ID."
+    },
+    {
+      "id": "faq-023",
+      "category": "pricing",
+      "question": "Are there setup fees?",
+      "answer": "No setup fees! You only pay the monthly subscription. We also provide free onboarding and setup assistance for all new customers."
+    },
+    {
+      "id": "faq-024",
+      "category": "features",
+      "question": "Can I customize ByteAI's responses?",
+      "answer": "Yes! You can customize the AI's personality, knowledge base, and responses through the dashboard. Enterprise plans include custom voice training."
+    },
+    {
+      "id": "faq-025",
+      "category": "technical",
+      "question": "Where is data stored?",
+      "answer": "Data is stored in US-based AWS data centers with encryption at rest and in transit. EU customers can request data residency in EU regions."
+    }
+  ]
+}

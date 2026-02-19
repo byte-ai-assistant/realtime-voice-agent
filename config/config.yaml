@@ -1,0 +1,71 @@
+# Real-Time Voice AI Agent Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+  log_level: "INFO"
+
+voice:
+  # Audio format
+  sample_rate: 8000
+  channels: 1
+  chunk_size: 160  # 20ms at 8kHz
+  
+  # Voice Activity Detection
+  silence_threshold: 500  # milliseconds
+  min_speech_duration: 300  # milliseconds
+  
+  # Interruption handling
+  enable_interrupts: true
+  interrupt_threshold: 200  # milliseconds
+
+deepgram:
+  model: "nova-2"
+  language: "en-US"
+  punctuate: true
+  interim_results: true
+  endpointing: 300  # milliseconds
+
+elevenlabs:
+  model: "eleven_turbo_v2_5"
+  voice_stability: 0.5
+  similarity_boost: 0.75
+  optimize_streaming_latency: 4  # Maximum optimization
+  output_format: "ulaw_8000"  # Match Twilio format
+
+anthropic:
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 1024
+  temperature: 0.7
+  stream: true
+
+knowledge_base:
+  collection_name: "voice_agent_kb"
+  embedding_model: "text-embedding-3-small"
+  chunk_size: 500
+  top_k: 3
+  similarity_threshold: 0.7
+
+tools:
+  enabled:
+    - book_appointment
+    - check_appointment
+    - escalate_to_human
+  
+  appointment:
+    database_path: "./data/appointments.json"
+    business_hours:
+      start: "09:00"
+      end: "17:00"
+      timezone: "America/New_York"
+  
+  escalation:
+    support_phone: "+1-555-SUPPORT"
+    webhook_url: "https://example.com/webhooks/support"
+
+monitoring:
+  enable_metrics: true
+  enable_call_recording: false
+  recording_path: "./data/recordings/"
+  metrics_port: 9090
