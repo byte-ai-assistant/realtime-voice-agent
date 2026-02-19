@@ -14,16 +14,24 @@ from openai import AsyncOpenAI
 logger = logging.getLogger(__name__)
 
 
+def _is_placeholder(value: str) -> bool:
+    """Detect placeholder API key values from .env.example"""
+    if not value:
+        return True
+    return value.startswith("your_") or value in ("changeme", "CHANGE_ME", "xxx", "sk-xxx")
+
+
 class KnowledgeBase:
     """Vector-based knowledge base for RAG"""
 
     def __init__(self):
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        if not self.openai_api_key:
+        if not self.openai_api_key or _is_placeholder(self.openai_api_key):
             logger.warning("OPENAI_API_KEY not set - knowledge base will use default embeddings")
-
-        # Initialize OpenAI client for embeddings
-        self.openai_client = AsyncOpenAI(api_key=self.openai_api_key) if self.openai_api_key else None
+            self.openai_api_key = None
+            self.openai_client = None
+        else:
+            self.openai_client = AsyncOpenAI(api_key=self.openai_api_key)
         self.embedding_model = "text-embedding-3-small"
 
         # Initialize ChromaDB with persistent storage
