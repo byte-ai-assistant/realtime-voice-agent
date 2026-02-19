@@ -129,11 +129,11 @@ class VoiceHandler:
                         )
 
                         # Send to Deepgram
-                        self.dg_connection.send(audio_chunk)
+                        await self.dg_connection.send(audio_chunk)
 
                     except asyncio.TimeoutError:
                         # Keep connection alive during silence
-                        self.dg_connection.keep_alive()
+                        await self.dg_connection.keep_alive()
                         continue
 
             except Exception as e:
@@ -176,7 +176,7 @@ class VoiceHandler:
                 voice_id=self.voice_id,
                 model_id="eleven_turbo_v2_5",
                 output_format="ulaw_8000",
-                optimize_streaming_latency=4,
+                optimize_streaming_latency="4",
             )
 
             # Stream audio chunks
