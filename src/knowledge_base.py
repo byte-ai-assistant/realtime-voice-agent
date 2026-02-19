@@ -9,7 +9,6 @@ import logging
 from typing import List, Dict, Optional
 
 import chromadb
-from chromadb.config import Settings
 from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
@@ -17,77 +16,72 @@ logger = logging.getLogger(__name__)
 
 class KnowledgeBase:
     """Vector-based knowledge base for RAG"""
-    
+
     def __init__(self):
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if not self.openai_api_key:
-            logger.warning("OPENAI_API_KEY not set - knowledge base will not work")
-        
+            logger.warning("OPENAI_API_KEY not set - knowledge base will use default embeddings")
+
         # Initialize OpenAI client for embeddings
         self.openai_client = AsyncOpenAI(api_key=self.openai_api_key) if self.openai_api_key else None
         self.embedding_model = "text-embedding-3-small"
-        
-        # Initialize ChromaDB
-        self.chroma_client = chromadb.Client(Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory="./data/chroma"
-        ))
-        
+
+        # Initialize ChromaDB with persistent storage
+        chroma_path = "./data/chroma"
+        os.makedirs(chroma_path, exist_ok=True)
+        self.chroma_client = chromadb.PersistentClient(path=chroma_path)
+
         self.collection_name = "voice_agent_kb"
         self.collection = None
         self.document_count = 0
-        
-        logger.info("✅ KnowledgeBase initialized")
-    
+
+        logger.info("KnowledgeBase initialized")
+
     async def initialize(self, kb_path: str):
         """
         Load knowledge base from JSON file and create embeddings
         """
         try:
-            logger.info(f"📚 Loading knowledge base from: {kb_path}")
-            
+            logger.info(f"Loading knowledge base from: {kb_path}")
+
             # Load documents
             with open(kb_path, 'r') as f:
                 data = json.load(f)
-            
+
             documents = data.get("documents", [])
             if not documents:
                 raise ValueError("No documents found in knowledge base")
-            
+
             self.document_count = len(documents)
-            logger.info(f"📄 Loaded {self.document_count} documents")
-            
-            # Create or get collection
-            try:
-                self.collection = self.chroma_client.get_collection(self.collection_name)
-                logger.info(f"✅ Using existing collection: {self.collection_name}")
-            except:
-                self.collection = self.chroma_client.create_collection(
-                    name=self.collection_name,
-                    metadata={"description": "Voice agent knowledge base"}
-                )
-                logger.info(f"✅ Created new collection: {self.collection_name}")
-            
+            logger.info(f"Loaded {self.document_count} documents")
+
+            # Get or create collection
+            self.collection = self.chroma_client.get_or_create_collection(
+                name=self.collection_name,
+                metadata={"description": "Voice agent knowledge base"}
+            )
+            logger.info(f"Using collection: {self.collection_name}")
+
             # Check if collection already has documents
             existing_count = self.collection.count()
             if existing_count > 0:
-                logger.info(f"ℹ️  Collection already has {existing_count} documents - skipping embedding")
+                logger.info(f"Collection already has {existing_count} documents - skipping embedding")
                 return
-            
+
             # Generate embeddings and store
-            logger.info("🔄 Generating embeddings...")
-            
+            logger.info("Generating embeddings...")
+
             ids = []
             texts = []
             metadatas = []
             embeddings_list = []
-            
+
             for doc in documents:
                 doc_id = doc.get("id", f"doc_{len(ids)}")
-                
+
                 # Combine question and answer for better retrieval
                 text = f"Q: {doc.get('question', '')}\nA: {doc.get('answer', '')}"
-                
+
                 ids.append(doc_id)
                 texts.append(text)
                 metadatas.append({
@@ -95,12 +89,12 @@ class KnowledgeBase:
                     "question": doc.get("question", ""),
                     "answer": doc.get("answer", "")
                 })
-                
+
                 # Generate embedding
                 if self.openai_client:
                     embedding = await self._generate_embedding(text)
                     embeddings_list.append(embedding)
-            
+
             # Add to collection
             if embeddings_list:
                 self.collection.add(
@@ -116,13 +110,13 @@ class KnowledgeBase:
                     documents=texts,
                     metadatas=metadatas
                 )
-            
-            logger.info(f"✅ Knowledge base initialized with {len(documents)} documents")
-            
+
+            logger.info(f"Knowledge base initialized with {len(documents)} documents")
+
         except Exception as e:
-            logger.error(f"❌ Failed to initialize knowledge base: {e}", exc_info=True)
+            logger.error(f"Failed to initialize knowledge base: {e}", exc_info=True)
             raise
-    
+
     async def _generate_embedding(self, text: str) -> List[float]:
         """Generate embedding using OpenAI"""
         try:
@@ -131,11 +125,11 @@ class KnowledgeBase:
                 input=text
             )
             return response.data[0].embedding
-            
+
         except Exception as e:
             logger.error(f"Embedding error: {e}")
             raise
-    
+
     async def search(self, query: str, top_k: int = 3) -> List[Dict]:
         """
         Search knowledge base for relevant documents
@@ -145,12 +139,12 @@ class KnowledgeBase:
             if not self.collection:
                 logger.warning("Collection not initialized")
                 return []
-            
+
             # Generate query embedding
             query_embedding = None
             if self.openai_client:
                 query_embedding = await self._generate_embedding(query)
-            
+
             # Search collection
             if query_embedding:
                 results = self.collection.query(
@@ -163,7 +157,7 @@ class KnowledgeBase:
                     query_texts=[query],
                     n_results=top_k
                 )
-            
+
             # Format results
             documents = []
             if results and results["metadatas"]:
@@ -175,10 +169,10 @@ class KnowledgeBase:
                         "answer": metadata.get("answer", ""),
                         "distance": results["distances"][0][i] if "distances" in results else 0
                     })
-            
-            logger.info(f"🔍 Found {len(documents)} relevant documents for: {query[:50]}...")
+
+            logger.info(f"Found {len(documents)} relevant documents for: {query[:50]}...")
             return documents
-            
+
         except Exception as e:
             logger.error(f"Search error: {e}", exc_info=True)
             return []

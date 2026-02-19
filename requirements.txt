@@ -8,17 +8,18 @@ python-multipart==0.0.6
 twilio==8.13.0
 
 # Speech Recognition
-deepgram-sdk==3.2.3
+deepgram-sdk>=3.5.0,<4.0.0
 
 # Text-to-Speech
-elevenlabs==0.2.27
+elevenlabs>=1.0.0,<2.0.0
 
 # AI/LLM
-anthropic==0.18.0
+anthropic>=0.25.0
 
 # Vector DB & Embeddings
-chromadb==0.4.22
-openai==1.12.0
+chromadb>=0.5.0,<1.0.0
+numpy<2.0.0
+openai>=1.30.0,<2.0.0
 
 # Utilities
 python-dotenv==1.0.0
@@ -26,11 +27,12 @@ pydantic==2.6.0
 pydantic-settings==2.1.0
 aiofiles==23.2.1
 python-json-logger==2.0.7
+PyYAML>=6.0
 
 # Audio Processing
 pydub==0.25.1
 
 # Testing
-pytest==8.0.0
-pytest-asyncio==0.23.4
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
 httpx==0.26.0
