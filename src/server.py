@@ -97,6 +97,58 @@ async def health_check():
     }
 
 
+@app.post("/test/chat")
+async def test_chat(request: Request):
+    """
+    Text-based test endpoint for the AI agent.
+    Tests Claude + RAG + tool calling without any audio.
+    Enable via ENABLE_TEST_ENDPOINTS=true env var.
+
+    Usage: curl -X POST http://localhost:8000/test/chat \
+           -H "Content-Type: application/json" \
+           -d '{"text": "What are your prices?"}'
+    """
+    if not os.getenv("ENABLE_TEST_ENDPOINTS", "").lower() in ("true", "1", "yes"):
+        return {"error": "Test endpoints disabled. Set ENABLE_TEST_ENDPOINTS=true"}
+
+    try:
+        body = await request.json()
+        user_text = body.get("text", "")
+        if not user_text:
+            return {"error": "Missing 'text' field in request body"}
+
+        # Create a temporary AI agent with the shared knowledge base
+        ai_agent = AIAgent(knowledge_base=knowledge_base)
+        await ai_agent.send_greeting()
+
+        # Collect the full response
+        response_text = ""
+        tool_results = []
+
+        async for chunk in ai_agent.process_message(user_text):
+            if chunk.get("type") == "text":
+                response_text += chunk["content"]
+            elif chunk.get("type") == "tool_call":
+                tool_results.append({
+                    "tool": chunk["name"],
+                    "input": chunk["input"],
+                    "result": chunk["result"]
+                })
+            elif chunk.get("type") == "error":
+                response_text += chunk["content"]
+
+        return {
+            "user": user_text,
+            "response": response_text,
+            "tool_calls": tool_results if tool_results else None,
+            "conversation_history_length": len(ai_agent.conversation_history)
+        }
+
+    except Exception as e:
+        logger.error(f"Test chat error: {e}", exc_info=True)
+        return {"error": str(e)}
+
+
 @app.post("/webhook/voice")
 async def voice_webhook(request: Request):
     """
