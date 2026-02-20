@@ -8,7 +8,7 @@ import base64
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
@@ -49,7 +49,7 @@ async def startup_event():
     global knowledge_base
 
     # Track server start time for uptime metrics
-    app.state.start_time = datetime.utcnow()
+    app.state.start_time = datetime.now(timezone.utc)
 
     logger.info("Starting Real-Time Voice AI Agent...")
 
@@ -60,8 +60,9 @@ async def startup_event():
         await knowledge_base.initialize(kb_path)
         logger.info(f"Knowledge base initialized with {knowledge_base.document_count} documents")
     except Exception as e:
-        logger.error(f"Failed to initialize knowledge base: {e}")
-        raise
+        logger.warning(f"Knowledge base initialization failed: {e}")
+        logger.warning("Server will run without RAG - AI agent will use its built-in knowledge only")
+        knowledge_base = None
 
     logger.info("Server ready to accept calls!")
 
@@ -83,7 +84,7 @@ async def health_check():
     """Detailed health check"""
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "checks": {
             "knowledge_base": knowledge_base is not None,
             "active_calls": len(active_calls),
@@ -255,7 +256,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         logger.info(f"Stream started: {stream_sid} for call: {call_sid}")
                         active_calls[call_sid] = {
                             "stream_sid": stream_sid,
-                            "started_at": datetime.utcnow().isoformat()
+                            "started_at": datetime.now(timezone.utc).isoformat()
                         }
 
                         # Synthesize and send greeting audio to caller
@@ -392,7 +393,7 @@ async def metrics():
     return {
         "active_calls": len(active_calls),
         "total_documents": knowledge_base.document_count if knowledge_base else 0,
-        "uptime_seconds": (datetime.utcnow() - app.state.start_time).total_seconds() if hasattr(app.state, "start_time") else 0
+        "uptime_seconds": (datetime.now(timezone.utc) - app.state.start_time).total_seconds() if hasattr(app.state, "start_time") else 0
     }
 
 
