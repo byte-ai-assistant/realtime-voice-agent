@@ -25,7 +25,8 @@ deepgram:
   language: "en-US"
   punctuate: true
   interim_results: true
-  endpointing: 200  # milliseconds (reduced from 300 for faster response)
+  endpointing: 150  # milliseconds (reduced from 200 for faster response)
+  utterance_end_ms: 1000  # detect end-of-utterance for multi-sentence input
 
 elevenlabs:
   model: "eleven_turbo_v2_5"

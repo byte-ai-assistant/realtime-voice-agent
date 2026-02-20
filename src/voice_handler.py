@@ -80,7 +80,8 @@ class VoiceHandler:
                 language="en-US",
                 punctuate=True,
                 interim_results=True,
-                endpointing=200,
+                endpointing=150,  # Reduced from 200ms for faster finalization
+                utterance_end_ms=1000,  # Detect end-of-utterance for multi-sentence input
                 smart_format=True,
                 encoding="mulaw",
                 sample_rate=8000,
@@ -257,8 +258,10 @@ class ElevenLabsInputStreamer:
                 "similarity_boost": 0.75,
             },
             "generation_config": {
-                # Aggressive schedule: start generating after fewer chars
-                "chunk_length_schedule": [50, 90, 120, 150, 200]
+                # Very aggressive schedule: start generating after as few chars
+                # as possible. First chunk at 25 chars means audio synthesis
+                # begins almost immediately as Claude tokens arrive.
+                "chunk_length_schedule": [25, 50, 75, 100, 150]
             },
             "xi_api_key": self.api_key,
         }))
