@@ -27,7 +27,7 @@ class AIAgent:
 
         # Initialize Claude client
         self.client = AsyncAnthropic(api_key=self.anthropic_api_key)
-        self.model = "claude-haiku-4-5-20250414"
+        self.model = "claude-haiku-4-5-20251001"
 
         # Knowledge base
         self.knowledge_base = knowledge_base
