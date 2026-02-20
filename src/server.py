@@ -307,9 +307,22 @@ async def websocket_endpoint(websocket: WebSocket):
             Claude tokens stream directly into ElevenLabs, which begins
             audio synthesis before the full response is available.
             Falls back to sentence-buffered REST TTS on WS failure.
+
+            Optimization: pre-warms the ElevenLabs WebSocket connection
+            while waiting for the next transcript, so it's already
+            established when the first Claude token arrives (~50ms saved).
             """
             nonlocal is_agent_speaking
             response_counter = 0
+
+            # Pre-warm a TTS WebSocket so it's ready for the first transcript
+            pending_tts_stream = None
+            try:
+                pending_tts_stream = voice_handler.create_tts_stream()
+                await pending_tts_stream.connect()
+            except Exception as e:
+                logger.debug(f"TTS pre-warm failed (will retry inline): {e}")
+                pending_tts_stream = None
 
             try:
                 async for transcript in voice_handler.transcribe_stream():
@@ -326,15 +339,20 @@ async def websocket_endpoint(websocket: WebSocket):
 
                     is_agent_speaking = True
 
-                    # Try ElevenLabs WebSocket input streaming (lowest latency)
+                    # Use the pre-warmed TTS connection if available, otherwise connect now
                     tts_stream = None
                     use_input_streaming = True
-                    try:
-                        tts_stream = voice_handler.create_tts_stream()
-                        await tts_stream.connect()
-                    except Exception as e:
-                        logger.warning(f"ElevenLabs WS connect failed, using REST fallback: {e}")
-                        use_input_streaming = False
+
+                    if pending_tts_stream:
+                        tts_stream = pending_tts_stream
+                        pending_tts_stream = None
+                    else:
+                        try:
+                            tts_stream = voice_handler.create_tts_stream()
+                            await tts_stream.connect()
+                        except Exception as e:
+                            logger.warning(f"ElevenLabs WS connect failed, using REST fallback: {e}")
+                            use_input_streaming = False
 
                     if use_input_streaming and tts_stream:
                         await _process_with_input_streaming(
@@ -352,10 +370,21 @@ async def websocket_endpoint(websocket: WebSocket):
                     response_counter += 1
                     await send_mark(f"response_end_{response_counter}")
 
+                    # Pre-warm the next TTS connection while idle
+                    try:
+                        pending_tts_stream = voice_handler.create_tts_stream()
+                        await pending_tts_stream.connect()
+                    except Exception:
+                        pending_tts_stream = None
+
             except asyncio.CancelledError:
                 logger.info("Speech processing cancelled")
             except Exception as e:
                 logger.error(f"Error processing speech: {e}", exc_info=True)
+            finally:
+                # Clean up any pre-warmed connection that wasn't used
+                if pending_tts_stream:
+                    await pending_tts_stream.close()
 
         # Run both tasks concurrently
         tasks = [
@@ -402,8 +431,9 @@ async def _process_with_input_streaming(ai_agent, transcript, tts_stream, send_a
 
             # Send to ElevenLabs when we hit punctuation or accumulate enough text.
             # try_trigger_generation=True at punctuation to start audio immediately.
+            # Lower threshold (15 chars) sends text to TTS sooner for faster first audio.
             has_punct = any(p in text_buffer for p in '.,!?;:\n')
-            if has_punct or len(text_buffer) >= 25:
+            if has_punct or len(text_buffer) >= 15:
                 await tts_stream.send_text(text_buffer, try_trigger=has_punct)
                 text_buffer = ""
 
