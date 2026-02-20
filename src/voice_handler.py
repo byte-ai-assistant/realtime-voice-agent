@@ -90,7 +90,7 @@ class VoiceHandler:
             # Capture outer self for closure - avoids parameter shadowing bug
             handler = self
 
-            async def on_message(result, **kwargs):
+            async def on_message(_self, result, **kwargs):
                 """Handle transcription results from Deepgram"""
                 try:
                     sentence = result.channel.alternatives[0].transcript
@@ -104,7 +104,7 @@ class VoiceHandler:
                 except Exception as e:
                     logger.error(f"Transcription callback error: {e}")
 
-            async def on_error(error, **kwargs):
+            async def on_error(_self, error, **kwargs):
                 """Handle Deepgram errors"""
                 logger.error(f"Deepgram error: {error}")
 
