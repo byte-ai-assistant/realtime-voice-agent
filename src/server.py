@@ -79,6 +79,16 @@ async def root():
     }
 
 
+@app.post("/")
+async def root_voice_webhook(request: Request):
+    """
+    Handle Twilio incoming call webhooks at the root path.
+    Twilio is often configured to POST to the root URL (e.g. ngrok URL).
+    Delegates to the same logic as /webhook/voice.
+    """
+    return await voice_webhook(request)
+
+
 @app.get("/health")
 async def health_check():
     """Detailed health check"""
