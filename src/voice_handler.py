@@ -77,7 +77,7 @@ class VoiceHandler:
             # Configure Deepgram options
             options = LiveOptions(
                 model="nova-2",
-                language="en-US",
+                language="es",
                 punctuate=True,
                 interim_results=True,
                 endpointing=150,  # Reduced from 200ms for faster finalization
@@ -258,10 +258,9 @@ class ElevenLabsInputStreamer:
                 "similarity_boost": 0.75,
             },
             "generation_config": {
-                # Very aggressive schedule: start generating after as few chars
-                # as possible. First chunk at 25 chars means audio synthesis
-                # begins almost immediately as Claude tokens arrive.
-                "chunk_length_schedule": [25, 50, 75, 100, 150]
+                # Aggressive schedule: minimum allowed by ElevenLabs is 50.
+                # Smaller values get the first audio chunk generated sooner.
+                "chunk_length_schedule": [50, 75, 100, 125, 150]
             },
             "xi_api_key": self.api_key,
         }))

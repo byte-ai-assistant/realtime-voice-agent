@@ -343,10 +343,14 @@ async def websocket_endpoint(websocket: WebSocket):
                     tts_stream = None
                     use_input_streaming = True
 
-                    if pending_tts_stream:
+                    if pending_tts_stream and pending_tts_stream.ws and pending_tts_stream.ws.open:
                         tts_stream = pending_tts_stream
                         pending_tts_stream = None
                     else:
+                        # Close stale pre-warmed connection if it timed out
+                        if pending_tts_stream:
+                            await pending_tts_stream.close()
+                            pending_tts_stream = None
                         try:
                             tts_stream = voice_handler.create_tts_stream()
                             await tts_stream.connect()

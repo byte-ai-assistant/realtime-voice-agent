@@ -71,7 +71,7 @@ class AppointmentManager:
             except ValueError:
                 return {
                     "success": False,
-                    "error": "Invalid date format. Please use YYYY-MM-DD"
+                    "error": "Formato de fecha inválido. Por favor usa AAAA-MM-DD"
                 }
             
             # Validate time format
@@ -80,14 +80,14 @@ class AppointmentManager:
             except ValueError:
                 return {
                     "success": False,
-                    "error": "Invalid time format. Please use HH:MM (24-hour)"
+                    "error": "Formato de hora inválido. Por favor usa HH:MM (formato 24 horas)"
                 }
             
             # Check if date is in the future
             if appointment_date.date() < datetime.now().date():
                 return {
                     "success": False,
-                    "error": "Cannot book appointments in the past"
+                    "error": "No se pueden agendar citas en el pasado"
                 }
             
             # Check business hours (9 AM - 5 PM)
@@ -95,7 +95,7 @@ class AppointmentManager:
             if hour < 9 or hour >= 17:
                 return {
                     "success": False,
-                    "error": "Appointments are only available between 9 AM and 5 PM"
+                    "error": "Las citas solo están disponibles entre 9 AM y 5 PM"
                 }
             
             # Generate appointment ID
@@ -123,7 +123,7 @@ class AppointmentManager:
                 "date": date,
                 "time": time,
                 "name": name,
-                "message": f"Appointment confirmed for {name} on {date} at {time}. Confirmation number: {appointment_id}"
+                "message": f"Cita confirmada para {name} el {date} a las {time}. Número de confirmación: {appointment_id}"
             }
             
         except Exception as e:
@@ -155,7 +155,7 @@ class AppointmentManager:
             if not found_appointments:
                 return {
                     "success": False,
-                    "message": "No appointments found for this phone number"
+                    "message": "No se encontraron citas para este número de teléfono"
                 }
             
             # Return most recent appointment
@@ -170,7 +170,7 @@ class AppointmentManager:
                     "name": latest_apt["name"],
                     "status": latest_apt["status"]
                 },
-                "message": f"Found appointment for {latest_apt['name']} on {latest_apt['date']} at {latest_apt['time']}"
+                "message": f"Cita encontrada para {latest_apt['name']} el {latest_apt['date']} a las {latest_apt['time']}"
             }
             
         except Exception as e:
@@ -238,7 +238,7 @@ class EscalationHandler:
                 "success": True,
                 "ticket_id": ticket_id,
                 "support_phone": self.support_phone,
-                "message": f"I've created a support ticket ({ticket_id}) and our team will call you back shortly at {callback_number or 'the number you called from'}."
+                "message": f"He creado un ticket de soporte ({ticket_id}) y nuestro equipo te devolverá la llamada pronto al {callback_number or 'número desde el que llamaste'}."
             }
             
         except Exception as e:

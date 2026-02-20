@@ -155,7 +155,7 @@ class KnowledgeBase:
                 categories[cat] = []
             categories[cat].append(doc)
 
-        lines = ["\n\nCompany Knowledge Base (use this to answer customer questions):"]
+        lines = ["\n\nBase de Conocimientos de la Empresa (usa esto para responder preguntas de los clientes):"]
         for cat in sorted(categories.keys()):
             lines.append(f"\n[{cat.upper()}]")
             for doc in categories[cat]:
