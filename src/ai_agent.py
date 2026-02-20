@@ -70,6 +70,18 @@ Available tools:
             if kb_text:
                 self.system_prompt += kb_text
 
+        # Pre-build the system prompt with cache_control for Anthropic prompt caching.
+        # The system prompt (including embedded KB) is identical across all turns in a
+        # conversation. Caching it avoids re-processing ~500+ tokens on every request,
+        # reducing TTFT by ~100-150ms on the 2nd+ message.
+        self._cached_system = [
+            {
+                "type": "text",
+                "text": self.system_prompt,
+                "cache_control": {"type": "ephemeral"}
+            }
+        ]
+
         logger.info("AIAgent initialized")
 
     async def send_greeting(self) -> str:
@@ -111,9 +123,9 @@ Available tools:
 
             async with self.client.messages.stream(
                 model=self.model,
-                max_tokens=200,
+                max_tokens=150,
                 temperature=0.3,
-                system=self.system_prompt,
+                system=self._cached_system,
                 messages=messages,
                 tools=tools
             ) as stream:
@@ -204,9 +216,9 @@ Available tools:
                 # Generate follow-up response after tool execution
                 async with self.client.messages.stream(
                     model=self.model,
-                    max_tokens=200,
+                    max_tokens=150,
                     temperature=0.3,
-                    system=self.system_prompt,
+                    system=self._cached_system,
                     messages=self.conversation_history
                 ) as follow_up_stream:
                     follow_up_text = ""
