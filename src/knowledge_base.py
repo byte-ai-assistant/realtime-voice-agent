@@ -42,6 +42,7 @@ class KnowledgeBase:
         self.collection_name = "voice_agent_kb"
         self.collection = None
         self.document_count = 0
+        self.documents = []
 
         logger.info("KnowledgeBase initialized")
 
@@ -61,6 +62,7 @@ class KnowledgeBase:
                 raise ValueError("No documents found in knowledge base")
 
             self.document_count = len(documents)
+            self.documents = documents
             logger.info(f"Loaded {self.document_count} documents")
 
             # Get or create collection
@@ -137,6 +139,30 @@ class KnowledgeBase:
         except Exception as e:
             logger.error(f"Embedding error: {e}")
             raise
+
+    def get_all_documents_text(self) -> str:
+        """
+        Return all KB documents as formatted text for embedding in the system prompt.
+        This eliminates the need for per-query embedding + vector search (~876ms saved).
+        """
+        if not self.documents:
+            return ""
+
+        categories = {}
+        for doc in self.documents:
+            cat = doc.get("category", "general")
+            if cat not in categories:
+                categories[cat] = []
+            categories[cat].append(doc)
+
+        lines = ["\n\nCompany Knowledge Base (use this to answer customer questions):"]
+        for cat in sorted(categories.keys()):
+            lines.append(f"\n[{cat.upper()}]")
+            for doc in categories[cat]:
+                lines.append(f"Q: {doc.get('question', '')}")
+                lines.append(f"A: {doc.get('answer', '')}")
+
+        return "\n".join(lines)
 
     async def search(self, query: str, top_k: int = 3) -> List[Dict]:
         """

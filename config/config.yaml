@@ -25,7 +25,7 @@ deepgram:
   language: "en-US"
   punctuate: true
   interim_results: true
-  endpointing: 300  # milliseconds
+  endpointing: 200  # milliseconds (reduced from 300 for faster response)
 
 elevenlabs:
   model: "eleven_turbo_v2_5"
@@ -35,9 +35,9 @@ elevenlabs:
   output_format: "ulaw_8000"  # Match Twilio format
 
 anthropic:
-  model: "claude-sonnet-4-20250514"
-  max_tokens: 1024
-  temperature: 0.7
+  model: "claude-3-5-haiku-20241022"
+  max_tokens: 200
+  temperature: 0.3
   stream: true
 
 knowledge_base:

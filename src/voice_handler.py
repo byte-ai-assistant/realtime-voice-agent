@@ -16,6 +16,9 @@ from deepgram import (
     LiveOptions,
 )
 from elevenlabs.client import ElevenLabs
+import websockets as ws_lib
+import base64 as b64_lib
+import json as json_lib
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +80,7 @@ class VoiceHandler:
                 language="en-US",
                 punctuate=True,
                 interim_results=True,
-                endpointing=300,
+                endpointing=200,
                 smart_format=True,
                 encoding="mulaw",
                 sample_rate=8000,
@@ -179,17 +182,22 @@ class VoiceHandler:
                 optimize_streaming_latency="4",
             )
 
-            # Stream audio chunks
+            # Stream audio chunks without artificial delay
             for chunk in audio_stream:
                 if chunk:
                     yield chunk
-                    # Small delay to avoid overwhelming the WebSocket
-                    await asyncio.sleep(0.01)
 
         except Exception as e:
             logger.error(f"TTS error: {e}", exc_info=True)
             # Return silence on error
             yield b'\x00' * 160
+
+    def create_tts_stream(self) -> "ElevenLabsInputStreamer":
+        """Create a new ElevenLabs WebSocket-based input streamer for lowest latency TTS"""
+        return ElevenLabsInputStreamer(
+            api_key=self.elevenlabs_api_key,
+            voice_id=self.voice_id,
+        )
 
     async def cleanup(self):
         """Clean up resources"""
@@ -203,3 +211,110 @@ class VoiceHandler:
 
         except Exception as e:
             logger.error(f"Cleanup error: {e}")
+
+
+class ElevenLabsInputStreamer:
+    """
+    WebSocket-based text input streaming for ElevenLabs TTS.
+
+    Instead of sending complete sentences via REST (250ms+ per call),
+    this streams text tokens directly to ElevenLabs as they arrive
+    from the LLM. ElevenLabs begins audio synthesis immediately,
+    producing audio output before the full text is available.
+
+    Protocol:
+    1. Connect to wss://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream-input
+    2. Send BOS (beginning of stream) with voice settings
+    3. Send text chunks as they arrive from LLM
+    4. Send EOS (empty text) to signal completion
+    5. Receive audio chunks throughout
+    """
+
+    def __init__(self, api_key: str, voice_id: str,
+                 model_id: str = "eleven_turbo_v2_5"):
+        self.api_key = api_key
+        self.voice_id = voice_id
+        self.model_id = model_id
+        self.ws = None
+        self.audio_queue: asyncio.Queue = asyncio.Queue()
+        self._receive_task = None
+
+    async def connect(self):
+        """Establish WebSocket connection to ElevenLabs streaming endpoint"""
+        url = (
+            f"wss://api.elevenlabs.io/v1/text-to-speech/"
+            f"{self.voice_id}/stream-input"
+            f"?model_id={self.model_id}"
+            f"&output_format=ulaw_8000"
+        )
+        self.ws = await ws_lib.connect(url)
+
+        # Send BOS (beginning of stream) message with voice config
+        await self.ws.send(json_lib.dumps({
+            "text": " ",
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.75,
+            },
+            "generation_config": {
+                # Aggressive schedule: start generating after fewer chars
+                "chunk_length_schedule": [50, 90, 120, 150, 200]
+            },
+            "xi_api_key": self.api_key,
+        }))
+
+        # Start receiving audio in background
+        self._receive_task = asyncio.create_task(self._receive_audio())
+        logger.info("ElevenLabs input streaming connected")
+
+    async def send_text(self, text: str, try_trigger: bool = False):
+        """
+        Send a text chunk to ElevenLabs for synthesis.
+        Set try_trigger=True at natural boundaries (punctuation) to
+        encourage immediate audio generation.
+        """
+        if self.ws and text:
+            msg = {"text": text}
+            if try_trigger:
+                msg["try_trigger_generation"] = True
+            await self.ws.send(json_lib.dumps(msg))
+
+    async def flush(self):
+        """Send EOS (end of stream) to signal no more text is coming"""
+        if self.ws:
+            await self.ws.send(json_lib.dumps({"text": ""}))
+
+    async def _receive_audio(self):
+        """Receive audio chunks from ElevenLabs WebSocket"""
+        try:
+            async for message in self.ws:
+                data = json_lib.loads(message)
+                if data.get("audio"):
+                    audio_bytes = b64_lib.b64decode(data["audio"])
+                    await self.audio_queue.put(audio_bytes)
+                if data.get("isFinal"):
+                    break
+        except ws_lib.exceptions.ConnectionClosed:
+            logger.debug("ElevenLabs WS connection closed")
+        except Exception as e:
+            logger.error(f"ElevenLabs WS receive error: {e}")
+        finally:
+            await self.audio_queue.put(None)  # Signal end of audio
+
+    async def get_audio_chunks(self):
+        """Yield audio chunks as they arrive from ElevenLabs"""
+        while True:
+            chunk = await self.audio_queue.get()
+            if chunk is None:
+                break
+            yield chunk
+
+    async def close(self):
+        """Close the WebSocket connection"""
+        if self._receive_task and not self._receive_task.done():
+            self._receive_task.cancel()
+        if self.ws:
+            try:
+                await self.ws.close()
+            except Exception:
+                pass
