@@ -301,7 +301,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 logger.error(f"Error receiving audio: {e}", exc_info=True)
 
         async def process_speech():
-            """Process speech-to-text and generate AI responses with sentence buffering"""
+            """
+            Process speech-to-text and generate AI responses.
+            Uses ElevenLabs WebSocket input streaming for lowest latency:
+            Claude tokens stream directly into ElevenLabs, which begins
+            audio synthesis before the full response is available.
+            Falls back to sentence-buffered REST TTS on WS failure.
+            """
             nonlocal is_agent_speaking
             response_counter = 0
 
@@ -318,38 +324,29 @@ async def websocket_endpoint(websocket: WebSocket):
                         await clear_twilio_audio()
                         is_agent_speaking = False
 
-                    # Buffer for sentence-level TTS
-                    sentence_buffer = ""
+                    is_agent_speaking = True
 
-                    async for response_chunk in ai_agent.process_message(transcript):
-                        if response_chunk.get("type") == "text":
-                            text = response_chunk["content"]
-                            sentence_buffer += text
+                    # Try ElevenLabs WebSocket input streaming (lowest latency)
+                    tts_stream = None
+                    use_input_streaming = True
+                    try:
+                        tts_stream = voice_handler.create_tts_stream()
+                        await tts_stream.connect()
+                    except Exception as e:
+                        logger.warning(f"ElevenLabs WS connect failed, using REST fallback: {e}")
+                        use_input_streaming = False
 
-                            # Check for sentence boundaries and synthesize complete sentences
-                            while True:
-                                boundary = _find_sentence_boundary(sentence_buffer)
-                                if boundary == -1:
-                                    break
-
-                                # Extract and synthesize the complete sentence
-                                sentence = sentence_buffer[:boundary].strip()
-                                sentence_buffer = sentence_buffer[boundary:]
-
-                                if sentence:
-                                    await synthesize_and_send(sentence)
-
-                        elif response_chunk.get("type") == "tool_call":
-                            tool_name = response_chunk["name"]
-                            logger.info(f"Executing tool: {tool_name}")
-
-                        elif response_chunk.get("type") == "error":
-                            error_msg = response_chunk["content"]
-                            await synthesize_and_send(error_msg)
-
-                    # Flush remaining buffer (last sentence may not end with punctuation)
-                    if sentence_buffer.strip():
-                        await synthesize_and_send(sentence_buffer.strip())
+                    if use_input_streaming and tts_stream:
+                        await _process_with_input_streaming(
+                            ai_agent, transcript, tts_stream,
+                            send_audio_to_twilio
+                        )
+                        await tts_stream.close()
+                    else:
+                        # Fallback: sentence-by-sentence REST TTS
+                        await _process_with_sentence_buffering(
+                            ai_agent, transcript, synthesize_and_send
+                        )
 
                     # Mark end of this response for interrupt tracking
                     response_counter += 1
@@ -382,6 +379,80 @@ async def websocket_endpoint(websocket: WebSocket):
             await ai_agent.cleanup()
 
         logger.info(f"WebSocket connection closed: {call_sid}")
+
+
+async def _process_with_input_streaming(ai_agent, transcript, tts_stream, send_audio_fn):
+    """
+    Stream Claude tokens directly to ElevenLabs via WebSocket.
+    Audio generation starts before the full response is available.
+    """
+    # Forward audio from ElevenLabs WS to Twilio in background
+    async def forward_audio():
+        async for audio_chunk in tts_stream.get_audio_chunks():
+            await send_audio_fn(audio_chunk)
+
+    audio_task = asyncio.create_task(forward_audio())
+
+    # Stream Claude tokens → ElevenLabs WS
+    text_buffer = ""
+
+    async for chunk in ai_agent.process_message(transcript):
+        if chunk.get("type") == "text":
+            text_buffer += chunk["content"]
+
+            # Send to ElevenLabs when we hit punctuation or accumulate enough text.
+            # try_trigger_generation=True at punctuation to start audio immediately.
+            has_punct = any(p in text_buffer for p in '.,!?;:\n')
+            if has_punct or len(text_buffer) >= 25:
+                await tts_stream.send_text(text_buffer, try_trigger=has_punct)
+                text_buffer = ""
+
+        elif chunk.get("type") == "tool_call":
+            # Flush buffer before tool execution pause
+            if text_buffer:
+                await tts_stream.send_text(text_buffer, try_trigger=True)
+                text_buffer = ""
+            logger.info(f"Executing tool: {chunk['name']}")
+
+        elif chunk.get("type") == "error":
+            await tts_stream.send_text(chunk["content"], try_trigger=True)
+
+    # Flush any remaining text
+    if text_buffer:
+        await tts_stream.send_text(text_buffer, try_trigger=True)
+
+    # Signal end of text input
+    await tts_stream.flush()
+
+    # Wait for all audio to be forwarded to Twilio
+    await audio_task
+
+
+async def _process_with_sentence_buffering(ai_agent, transcript, synthesize_and_send_fn):
+    """Fallback: sentence-by-sentence REST TTS (original approach)."""
+    sentence_buffer = ""
+
+    async for chunk in ai_agent.process_message(transcript):
+        if chunk.get("type") == "text":
+            sentence_buffer += chunk["content"]
+
+            while True:
+                boundary = _find_sentence_boundary(sentence_buffer)
+                if boundary == -1:
+                    break
+                sentence = sentence_buffer[:boundary].strip()
+                sentence_buffer = sentence_buffer[boundary:]
+                if sentence:
+                    await synthesize_and_send_fn(sentence)
+
+        elif chunk.get("type") == "tool_call":
+            logger.info(f"Executing tool: {chunk['name']}")
+
+        elif chunk.get("type") == "error":
+            await synthesize_and_send_fn(chunk["content"])
+
+    if sentence_buffer.strip():
+        await synthesize_and_send_fn(sentence_buffer.strip())
 
 
 def _find_sentence_boundary(text: str) -> int:

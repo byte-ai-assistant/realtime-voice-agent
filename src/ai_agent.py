@@ -27,7 +27,7 @@ class AIAgent:
 
         # Initialize Claude client
         self.client = AsyncAnthropic(api_key=self.anthropic_api_key)
-        self.model = "claude-sonnet-4-20250514"
+        self.model = "claude-3-5-haiku-20241022"
 
         # Knowledge base
         self.knowledge_base = knowledge_base
@@ -63,6 +63,13 @@ Available tools:
 - check_appointment: Look up existing appointments (needs phone number)
 - escalate_to_human: Transfer to human support (needs reason)"""
 
+        # Embed entire knowledge base in system prompt to eliminate per-query
+        # RAG search latency (~876ms saved: OpenAI embedding + ChromaDB query)
+        if self.knowledge_base and hasattr(self.knowledge_base, 'get_all_documents_text'):
+            kb_text = self.knowledge_base.get_all_documents_text()
+            if kb_text:
+                self.system_prompt += kb_text
+
         logger.info("AIAgent initialized")
 
     async def send_greeting(self) -> str:
@@ -91,22 +98,8 @@ Available tools:
                 "content": user_message
             })
 
-            # Retrieve relevant knowledge
-            context = ""
-            if self.knowledge_base:
-                relevant_docs = await self.knowledge_base.search(user_message, top_k=3)
-                if relevant_docs:
-                    context = "\n\nRelevant information from knowledge base:\n"
-                    for doc in relevant_docs:
-                        context += f"- {doc['answer']}\n"
-
-            # Prepare messages with context injected into last user message
+            # KB is embedded in system prompt - no per-query search needed
             messages = self.conversation_history.copy()
-            if context:
-                messages[-1] = {
-                    "role": "user",
-                    "content": f"{user_message}{context}"
-                }
 
             # Define tools for Claude
             tools = self._get_tool_definitions()
@@ -118,8 +111,8 @@ Available tools:
 
             async with self.client.messages.stream(
                 model=self.model,
-                max_tokens=1024,
-                temperature=0.7,
+                max_tokens=200,
+                temperature=0.3,
                 system=self.system_prompt,
                 messages=messages,
                 tools=tools
@@ -211,8 +204,8 @@ Available tools:
                 # Generate follow-up response after tool execution
                 async with self.client.messages.stream(
                     model=self.model,
-                    max_tokens=512,
-                    temperature=0.7,
+                    max_tokens=200,
+                    temperature=0.3,
                     system=self.system_prompt,
                     messages=self.conversation_history
                 ) as follow_up_stream:
