@@ -35,7 +35,7 @@ elevenlabs:
   output_format: "ulaw_8000"  # Match Twilio format
 
 anthropic:
-  model: "claude-3-5-haiku-20241022"
+  model: "claude-haiku-4-5-20250414"
   max_tokens: 200
   temperature: 0.3
   stream: true
