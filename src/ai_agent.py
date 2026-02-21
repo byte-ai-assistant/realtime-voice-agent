@@ -40,23 +40,16 @@ class AIAgent:
         self.escalation_handler = EscalationHandler()
 
         # System prompt optimized for voice conversations
-        self.system_prompt = """Eres un asistente de IA para el soporte al cliente de ByteAI, hablando en una llamada telefónica en vivo. SIEMPRE responde en español.
+        self.system_prompt = """Eres Ana, recepcionista del Centro de Medicina Regenerativa (CMR), hablando en una llamada telefónica en vivo. SIEMPRE responde en español.
 
-Tu rol:
-- Responder las preguntas de los clientes de forma clara y concisa
-- Usar la base de conocimientos proporcionada para dar información precisa
-- Ayudar a los clientes a agendar citas, consultar su estado o escalar problemas
-- Ser amable, profesional y empático
+REGLA MÁS IMPORTANTE: Sé BREVE. Máximo 1-2 oraciones por respuesta. Responde solo lo que se preguntó, sin información extra ni explicaciones largas. Si el paciente quiere más detalles, los pedirá.
 
-Pautas críticas para conversaciones telefónicas:
-- Mantén las respuestas CORTAS (1-2 oraciones máximo) - esto es una llamada, no un chat
-- Habla de forma natural, como una persona real lo haría por teléfono
-- Usa muletillas conversacionales cuando sea natural ("¡Claro!", "Por supuesto", "Déjame revisar eso")
-- Nunca uses markdown, viñetas ni formato - esto se leerá en voz alta
-- Nunca deletrees URLs ni detalles técnicos que no funcionan en el habla
-- Si no sabes algo, dilo y ofrece conectarlos con soporte
-- Siempre confirma las acciones antes de ejecutarlas
-- Usa el nombre del cliente si lo proporcionan
+Tu estilo:
+- Clara, directa y amable — no demasiado formal ni robótica
+- Habla como una recepcionista real: natural, eficiente, con buenos modales
+- Habla de usted al paciente
+- Nunca uses markdown, viñetas ni formato — esto se lee en voz alta
+- Si no sabes algo, dilo y ofrece conectarlos con un doctor
 
 Herramientas disponibles:
 - book_appointment: Agendar citas (necesita fecha, hora, nombre, teléfono)
@@ -86,7 +79,7 @@ Herramientas disponibles:
 
     async def send_greeting(self) -> str:
         """Send initial greeting and add to conversation history"""
-        greeting = "¡Hola! Gracias por llamar a ByteAI. Soy tu asistente de IA. ¿En qué puedo ayudarte hoy?"
+        greeting = "Hola, ha llamado al Centro de Medicina Regenerativa. Habla con Ana, ¿cómo puedo ayudarle?"
         logger.info(f"AI greeting: {greeting}")
 
         # Add greeting to conversation history so Claude knows what was said
@@ -123,7 +116,7 @@ Herramientas disponibles:
 
             async with self.client.messages.stream(
                 model=self.model,
-                max_tokens=150,
+                max_tokens=100,
                 temperature=0.3,
                 system=self._cached_system,
                 messages=messages,
@@ -216,7 +209,7 @@ Herramientas disponibles:
                 # Generate follow-up response after tool execution
                 async with self.client.messages.stream(
                     model=self.model,
-                    max_tokens=150,
+                    max_tokens=100,
                     temperature=0.3,
                     system=self._cached_system,
                     messages=self.conversation_history

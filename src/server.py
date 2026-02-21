@@ -8,6 +8,7 @@ import base64
 import json
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from typing import Dict, Optional
 
@@ -16,10 +17,38 @@ from fastapi.responses import Response
 import uvicorn
 from dotenv import load_dotenv
 
+from websockets.exceptions import ConnectionClosedError as WsClosedError
 from voice_handler import VoiceHandler
 from ai_agent import AIAgent
 from knowledge_base import KnowledgeBase
 from tools import AppointmentManager, EscalationHandler
+
+# ---------------------------------------------------------------------------
+# Voice Activity Detection (VAD) for instant interrupt detection.
+# Decodes mu-law audio and checks RMS energy — runs on raw Twilio frames,
+# bypassing Deepgram's 200-350ms pipeline entirely (~60ms latency).
+# ---------------------------------------------------------------------------
+_MULAW_DECODE = [0] * 256
+for _i in range(256):
+    _v = ~_i & 0xFF
+    _sign = _v & 0x80
+    _exp = (_v >> 4) & 0x07
+    _man = _v & 0x0F
+    _mag = ((_man << 3) + 0x84) << _exp
+    _mag -= 0x84
+    _MULAW_DECODE[_i] = -_mag if _sign else _mag
+
+_VAD_THRESHOLD = 500       # RMS energy threshold (16-bit linear PCM scale)
+_VAD_FRAMES_REQUIRED = 3   # Consecutive frames needed (~60ms at 20ms/frame)
+
+
+def _audio_rms(data: bytes) -> float:
+    """RMS energy of a mu-law audio frame."""
+    if not data:
+        return 0.0
+    sq_sum = sum(_MULAW_DECODE[b] ** 2 for b in data)
+    return (sq_sum / len(data)) ** 0.5
+
 
 # Load environment variables
 load_dotenv()
@@ -254,6 +283,7 @@ async def websocket_endpoint(websocket: WebSocket):
         async def receive_audio():
             """Receive audio and control events from Twilio"""
             nonlocal call_sid, stream_sid, is_agent_speaking
+            vad_frames = 0  # consecutive high-energy frames
 
             try:
                 async for message in websocket.iter_text():
@@ -279,7 +309,22 @@ async def websocket_endpoint(websocket: WebSocket):
                         payload = data["media"]["payload"]
                         audio_data = base64.b64decode(payload)
 
-                        # Process audio through voice handler
+                        # --- VAD: instant interrupt detection on raw audio ---
+                        if is_agent_speaking:
+                            if _audio_rms(audio_data) > _VAD_THRESHOLD:
+                                vad_frames += 1
+                                if vad_frames >= _VAD_FRAMES_REQUIRED:
+                                    logger.info("VAD interrupt: caller speech detected")
+                                    await clear_twilio_audio()
+                                    voice_handler.speech_detected.set()
+                                    is_agent_speaking = False
+                                    vad_frames = 0
+                            else:
+                                vad_frames = 0
+                        else:
+                            vad_frames = 0
+
+                        # Process audio through voice handler (always, for STT)
                         await voice_handler.process_incoming_audio(audio_data)
 
                     elif event == "mark":
@@ -303,14 +348,12 @@ async def websocket_endpoint(websocket: WebSocket):
         async def process_speech():
             """
             Process speech-to-text and generate AI responses.
-            Uses ElevenLabs WebSocket input streaming for lowest latency:
-            Claude tokens stream directly into ElevenLabs, which begins
-            audio synthesis before the full response is available.
-            Falls back to sentence-buffered REST TTS on WS failure.
 
-            Optimization: pre-warms the ElevenLabs WebSocket connection
-            while waiting for the next transcript, so it's already
-            established when the first Claude token arrives (~50ms saved).
+            Architecture: the response runs as a background task so we can
+            continuously monitor the transcript queue.  If the user speaks
+            while the agent is still responding, the response task is
+            cancelled immediately, Twilio audio is cleared, conversation
+            history is rolled back, and the new transcript is processed.
             """
             nonlocal is_agent_speaking
             response_counter = 0
@@ -325,19 +368,24 @@ async def websocket_endpoint(websocket: WebSocket):
                 pending_tts_stream = None
 
             try:
-                async for transcript in voice_handler.transcribe_stream():
+                while True:
+                    # Wait for a final transcript
+                    transcript = await voice_handler.transcript_queue.get()
                     if not transcript.strip():
                         continue
 
                     logger.info(f"User: {transcript}")
 
-                    # Handle interrupts: if user speaks while agent is talking
+                    # If agent is still speaking (greeting or previous response
+                    # still playing in Twilio buffer), interrupt immediately.
                     if is_agent_speaking:
-                        logger.info(f"Interrupt detected: {transcript}")
+                        logger.info(f"Interrupt during playback: {transcript}")
                         await clear_twilio_audio()
                         is_agent_speaking = False
 
+                    voice_handler.speech_detected.clear()
                     is_agent_speaking = True
+                    history_checkpoint = len(ai_agent.conversation_history)
 
                     # Use the pre-warmed TTS connection if available, otherwise connect now
                     tts_stream = None
@@ -347,7 +395,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         tts_stream = pending_tts_stream
                         pending_tts_stream = None
                     else:
-                        # Close stale pre-warmed connection if it timed out
                         if pending_tts_stream:
                             await pending_tts_stream.close()
                             pending_tts_stream = None
@@ -359,10 +406,116 @@ async def websocket_endpoint(websocket: WebSocket):
                             use_input_streaming = False
 
                     if use_input_streaming and tts_stream:
-                        await _process_with_input_streaming(
-                            ai_agent, transcript, tts_stream,
-                            send_audio_to_twilio
-                        )
+                        # Speculative execution: check queue before first audio
+                        # reaches caller to catch Deepgram split-utterances.
+                        extra_parts = []
+                        audio_started = False
+
+                        async def send_audio_guarded(chunk):
+                            nonlocal audio_started
+                            if not audio_started:
+                                while not voice_handler.transcript_queue.empty():
+                                    try:
+                                        part = voice_handler.transcript_queue.get_nowait()
+                                        if part.strip():
+                                            extra_parts.append(part)
+                                    except asyncio.QueueEmpty:
+                                        break
+                                if extra_parts:
+                                    raise _TranscriptExtended()
+                                audio_started = True
+                            await send_audio_to_twilio(chunk)
+
+                        async def do_full_response():
+                            """Run the full response pipeline (retriable on stale TTS)."""
+                            nonlocal transcript, tts_stream
+                            try:
+                                await _process_with_input_streaming(
+                                    ai_agent, transcript, tts_stream,
+                                    send_audio_guarded
+                                )
+                            except _TranscriptExtended:
+                                ai_agent.conversation_history = ai_agent.conversation_history[:history_checkpoint]
+                                transcript += " " + " ".join(extra_parts)
+                                logger.info(f"Transcript extended before audio sent, reprocessing: {transcript}")
+                                await tts_stream.close()
+                                tts_stream = voice_handler.create_tts_stream()
+                                await tts_stream.connect()
+                                await _process_with_input_streaming(
+                                    ai_agent, transcript, tts_stream,
+                                    send_audio_to_twilio
+                                )
+                                return
+                            except WsClosedError:
+                                logger.warning("TTS WebSocket closed mid-stream, retrying with fresh connection")
+                                ai_agent.conversation_history = ai_agent.conversation_history[:history_checkpoint]
+                                await tts_stream.close()
+                                tts_stream = voice_handler.create_tts_stream()
+                                await tts_stream.connect()
+                                await _process_with_input_streaming(
+                                    ai_agent, transcript, tts_stream,
+                                    send_audio_to_twilio
+                                )
+                                return
+
+                        # Run response as a cancellable background task so we
+                        # can monitor the transcript queue for interrupts.
+                        response_task = asyncio.create_task(do_full_response())
+
+                        # Race: response completion vs user speaking (interrupt).
+                        # Uses speech_detected (fires on interim results) for
+                        # near-instant reaction (~100ms) instead of waiting for
+                        # final transcripts (~400ms).
+                        interrupted = False
+
+                        while not response_task.done():
+                            speech_waiter = asyncio.create_task(
+                                voice_handler.speech_detected.wait()
+                            )
+                            done, _ = await asyncio.wait(
+                                {response_task, speech_waiter},
+                                return_when=asyncio.FIRST_COMPLETED,
+                            )
+
+                            if speech_waiter in done and response_task not in done:
+                                # User started speaking — stop audio IMMEDIATELY,
+                                # then cancel the response task.
+                                interrupted = True
+                                await clear_twilio_audio()
+                                voice_handler.speech_detected.clear()
+                                response_task.cancel()
+                                try:
+                                    await response_task
+                                except (asyncio.CancelledError, Exception):
+                                    pass
+                                break
+
+                            if response_task in done:
+                                if not speech_waiter.done():
+                                    speech_waiter.cancel()
+                                    try:
+                                        await speech_waiter
+                                    except asyncio.CancelledError:
+                                        pass
+                                # Propagate response errors
+                                if not response_task.cancelled():
+                                    try:
+                                        response_task.result()
+                                    except Exception as e:
+                                        logger.error(f"Response error: {e}", exc_info=True)
+                                break
+
+                        if interrupted:
+                            logger.info("Interrupt: user spoke during response generation")
+                            ai_agent.conversation_history = ai_agent.conversation_history[:history_checkpoint]
+                            is_agent_speaking = False
+                            try:
+                                await tts_stream.close()
+                            except Exception:
+                                pass
+                            # Don't re-queue — final transcript arrives via queue naturally
+                            continue
+
                         await tts_stream.close()
                     else:
                         # Fallback: sentence-by-sentence REST TTS
@@ -370,9 +523,32 @@ async def websocket_endpoint(websocket: WebSocket):
                             ai_agent, transcript, synthesize_and_send
                         )
 
-                    # Mark end of this response for interrupt tracking
+                    # Response generation finished — audio is still playing in
+                    # Twilio's buffer.  Send a mark so we know when playback
+                    # ends, then monitor for user interrupts in the meantime.
                     response_counter += 1
                     await send_mark(f"response_end_{response_counter}")
+
+                    # Monitor for interrupts while Twilio plays the buffered audio.
+                    # Uses speech_detected (interim results) for near-instant reaction.
+                    # The mark handler in receive_audio sets is_agent_speaking=False
+                    # once Twilio confirms playback is done.
+                    while is_agent_speaking:
+                        try:
+                            await asyncio.wait_for(
+                                voice_handler.speech_detected.wait(),
+                                timeout=0.1
+                            )
+                            # User started speaking during playback — stop immediately
+                            logger.info("Interrupt during Twilio playback")
+                            voice_handler.speech_detected.clear()
+                            await clear_twilio_audio()
+                            is_agent_speaking = False
+                            break
+                        except asyncio.TimeoutError:
+                            continue
+
+                    is_agent_speaking = False
 
                     # Pre-warm the next TTS connection while idle
                     try:
@@ -386,7 +562,6 @@ async def websocket_endpoint(websocket: WebSocket):
             except Exception as e:
                 logger.error(f"Error processing speech: {e}", exc_info=True)
             finally:
-                # Clean up any pre-warmed connection that wasn't used
                 if pending_tts_stream:
                     await pending_tts_stream.close()
 
@@ -414,52 +589,76 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info(f"WebSocket connection closed: {call_sid}")
 
 
+class _TranscriptExtended(Exception):
+    """Raised when additional transcript parts arrive before audio reaches the caller."""
+    pass
+
+
 async def _process_with_input_streaming(ai_agent, transcript, tts_stream, send_audio_fn):
     """
     Stream Claude tokens directly to ElevenLabs via WebSocket.
     Audio generation starts before the full response is available.
+    Supports cancellation — the caller can cancel this coroutine's task
+    and the internal audio_task will be cleaned up automatically.
     """
-    # Forward audio from ElevenLabs WS to Twilio in background
+    # Forward audio from ElevenLabs WS to Twilio in background.
+    # If send_audio_fn raises _TranscriptExtended, we set the aborted
+    # event so the Claude streaming loop exits early instead of wasting tokens.
+    aborted = asyncio.Event()
+
     async def forward_audio():
-        async for audio_chunk in tts_stream.get_audio_chunks():
-            await send_audio_fn(audio_chunk)
+        try:
+            async for audio_chunk in tts_stream.get_audio_chunks():
+                await send_audio_fn(audio_chunk)
+        except _TranscriptExtended:
+            aborted.set()
+            raise
 
     audio_task = asyncio.create_task(forward_audio())
 
-    # Stream Claude tokens → ElevenLabs WS
-    text_buffer = ""
+    try:
+        # Stream Claude tokens → ElevenLabs WS
+        text_buffer = ""
 
-    async for chunk in ai_agent.process_message(transcript):
-        if chunk.get("type") == "text":
-            text_buffer += chunk["content"]
+        async for chunk in ai_agent.process_message(transcript):
+            # If audio forwarding failed (e.g. _TranscriptExtended), stop streaming
+            if aborted.is_set():
+                break
 
-            # Send to ElevenLabs when we hit punctuation or accumulate enough text.
-            # try_trigger_generation=True at punctuation to start audio immediately.
-            # Lower threshold (15 chars) sends text to TTS sooner for faster first audio.
-            has_punct = any(p in text_buffer for p in '.,!?;:\n')
-            if has_punct or len(text_buffer) >= 15:
-                await tts_stream.send_text(text_buffer, try_trigger=has_punct)
-                text_buffer = ""
+            if chunk.get("type") == "text":
+                text_buffer += chunk["content"]
 
-        elif chunk.get("type") == "tool_call":
-            # Flush buffer before tool execution pause
+                has_punct = any(p in text_buffer for p in '.,!?;:\n')
+                if has_punct or len(text_buffer) >= 15:
+                    await tts_stream.send_text(text_buffer, try_trigger=has_punct)
+                    text_buffer = ""
+
+            elif chunk.get("type") == "tool_call":
+                if text_buffer:
+                    await tts_stream.send_text(text_buffer, try_trigger=True)
+                    text_buffer = ""
+                logger.info(f"Executing tool: {chunk['name']}")
+
+            elif chunk.get("type") == "error":
+                await tts_stream.send_text(chunk["content"], try_trigger=True)
+
+        if not aborted.is_set():
             if text_buffer:
                 await tts_stream.send_text(text_buffer, try_trigger=True)
-                text_buffer = ""
-            logger.info(f"Executing tool: {chunk['name']}")
+            await tts_stream.flush()
 
-        elif chunk.get("type") == "error":
-            await tts_stream.send_text(chunk["content"], try_trigger=True)
+        # Wait for all audio to be forwarded to Twilio
+        await audio_task
 
-    # Flush any remaining text
-    if text_buffer:
-        await tts_stream.send_text(text_buffer, try_trigger=True)
-
-    # Signal end of text input
-    await tts_stream.flush()
-
-    # Wait for all audio to be forwarded to Twilio
-    await audio_task
+    except (asyncio.CancelledError, Exception):
+        # On cancellation or any error, clean up the detached audio task
+        if not audio_task.done():
+            audio_task.cancel()
+            try:
+                await audio_task
+            except (asyncio.CancelledError, _TranscriptExtended, Exception):
+                pass
+        raise
 
 
 async def _process_with_sentence_buffering(ai_agent, transcript, synthesize_and_send_fn):

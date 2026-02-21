@@ -47,6 +47,10 @@ class VoiceHandler:
         self.audio_buffer = asyncio.Queue()
         self.transcript_queue = asyncio.Queue()
 
+        # Fires on ANY detected speech (interim or final) for instant interrupts.
+        # Much faster than waiting for final transcripts (~100ms vs ~400ms).
+        self.speech_detected = asyncio.Event()
+
         # Deepgram connection
         self.dg_connection = None
         self.is_transcribing = False
@@ -80,7 +84,7 @@ class VoiceHandler:
                 language="es",
                 punctuate=True,
                 interim_results=True,
-                endpointing=150,  # Reduced from 200ms for faster finalization
+                endpointing=300,  # Balance between fast finalization and avoiding mid-sentence splits
                 utterance_end_ms=1000,  # Detect end-of-utterance for multi-sentence input
                 smart_format=True,
                 encoding="mulaw",
@@ -99,6 +103,8 @@ class VoiceHandler:
                 try:
                     sentence = result.channel.alternatives[0].transcript
                     if sentence.strip():
+                        # Signal speech immediately (interim or final) for interrupt detection
+                        handler.speech_detected.set()
                         # Only enqueue final results for AI processing
                         if result.is_final:
                             await handler.transcript_queue.put(sentence)

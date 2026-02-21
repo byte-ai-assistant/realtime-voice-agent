@@ -1,154 +1,316 @@
 {
   "documents": [
     {
+      "id": "terapia-001-info",
+      "category": "terapias",
+      "question": "¿Qué es la Terapia de Dolor y Recuperación?",
+      "answer": "Terapia de Dolor y Recuperación: Terapia combinada de láser (MLS) y HILT para alivio del dolor y recuperación."
+    },
+    {
+      "id": "terapia-001-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Terapia de Dolor y Recuperación?",
+      "answer": "Beneficios de Terapia de Dolor y Recuperación: Efecto analgésico. Efecto antiinflamatorio. Acelera la regeneración celular. Mejora circulación local. Mejora función metabólica y nerviosa."
+    },
+    {
+      "id": "terapia-001-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Terapia de Dolor y Recuperación?",
+      "answer": "Terapia de Dolor y Recuperación puede beneficiar a pacientes con: Dolor muscular o articular, artritis, espasmos musculares, rigidez articular"
+    },
+    {
+      "id": "terapia-001-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Terapia de Dolor y Recuperación?",
+      "answer": "El costo varia dependiendo de la cantidad y el tipo de terapias. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
+      "id": "terapia-002-info",
+      "category": "terapias",
+      "question": "¿Qué es la Terapia Celular Avanzada?",
+      "answer": "Terapia Celular Avanzada: Uso de células madre propias (autólogas) / activación de VSELs (Very Small Embryonic-Like Stem Cells) extraídas de la sangre del paciente con efecto anti-aging."
+    },
+    {
+      "id": "terapia-002-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Terapia Celular Avanzada?",
+      "answer": "Beneficios de Terapia Celular Avanzada: Rejuvenecimiento celular. Tratamiento de enfermedades asociadas al envejecimiento. Optimización del bienestar general. Intervención no invasiva con celular propias del paciente."
+    },
+    {
+      "id": "terapia-002-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Terapia Celular Avanzada?",
+      "answer": "Terapia Celular Avanzada puede beneficiar a pacientes con: Enfermedades crónicas relacionadas con envejecimiento biológico, deterioro funcional asociado a la edad"
+    },
+    {
+      "id": "terapia-002-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Terapia Celular Avanzada?",
+      "answer": "El costo varia dependiendo de la terapia prescrita por su doctor. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
+      "id": "terapia-003-info",
+      "category": "terapias",
+      "question": "¿Qué es la Sueroterapia Láser?",
+      "answer": "Sueroterapia Láser: Infusión intravenosa de altas dosis de vitamina C con luz láser modulada para potenciar el sistema immune y la vitalidad del paciente."
+    },
+    {
+      "id": "terapia-003-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Sueroterapia Láser?",
+      "answer": "Beneficios de Sueroterapia Láser: Potencia el sistema inmunológico. Mejora absorción de nutrientes. Incrementa energía y vitalidad. Detoxificación. Tratamiento no invasivo."
+    },
+    {
+      "id": "terapia-003-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Sueroterapia Láser?",
+      "answer": "Sueroterapia Láser puede beneficiar a pacientes con: Personas con deficiencias del sistema inmune, estados de fatiga, necesidad de fortalecimiento inmunitario"
+    },
+    {
+      "id": "terapia-003-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Sueroterapia Láser?",
+      "answer": "El costo de un IV de Vitamina C de 25g cuesta son 140 USD, pero ofrecemos paquetes con descuentos significativos. "
+    },
+    {
+      "id": "terapia-004-info",
+      "category": "terapias",
+      "question": "¿Qué es la Terapia de Optimización Masculina?",
+      "answer": "Terapia de Optimización Masculina: Radiofrecuencia bipolar inteligente no invasiva para optimizar vitalidad masculina con el dispositivo APEX"
+    },
+    {
+      "id": "terapia-004-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Terapia de Optimización Masculina?",
+      "answer": "Beneficios de Terapia de Optimización Masculina: Mayor firmeza, resistencia y funcionalidad. Mejor flujo sanguíneo local. Fortalecimiento del tejido mediante colágeno."
+    },
+    {
+      "id": "terapia-004-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Terapia de Optimización Masculina?",
+      "answer": "Terapia de Optimización Masculina puede beneficiar a pacientes con: Disfunción eréctil, debilidad vascular en zonas íntimas, problemas de resistencia sexual masculina"
+    },
+    {
+      "id": "terapia-004-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Terapia de Optimización Masculina?",
+      "answer": "El costo varia dependiendo de la cantidad y el tipo de terapias. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
+      "id": "terapia-005-info",
+      "category": "terapias",
+      "question": "¿Qué es la Terapia Íntima Femenina?",
+      "answer": "Terapia Íntima Femenina: El equipo EmpowerRF combina radiofrecuencia (FormaV), estimulación eléctrica del suelo pélvico (VTone) y radiofrecuencia fraccionada (Morpheus8V) para manejar diferentes condiciones relacionadas a la salud femenina."
+    },
+    {
+      "id": "terapia-005-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Terapia Íntima Femenina?",
+      "answer": "Beneficios de Terapia Íntima Femenina: Reducción de incontinencia urinaria. Mejora de sequedad vaginal y lubricación. Fortalecimiento del suelo pélvico. Alivio de dolor pélvico. Mejora de la circulación íntima."
+    },
+    {
+      "id": "terapia-005-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Terapia Íntima Femenina?",
+      "answer": "Terapia Íntima Femenina puede beneficiar a pacientes con: Incontinencia urinaria de esfuerzo o mixta; sequedad vaginal; problemas de laxitud del suelo pélvico; dolor pélvico crónico"
+    },
+    {
+      "id": "terapia-005-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Terapia Íntima Femenina?",
+      "answer": "El costo varia dependiendo de la cantidad y el tipo de terapias. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
+      "id": "terapia-006-info",
+      "category": "terapias",
+      "question": "¿Qué es la Terapia PEMF?",
+      "answer": "Terapia PEMF: Estimulación celular mediante campos electromagnéticos pulsados (PEMF) para aliviar el dolor y estimular la regeneracion celular."
+    },
+    {
+      "id": "terapia-006-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Terapia PEMF?",
+      "answer": "Beneficios de Terapia PEMF: Alivio del dolor. Estimulación regenerativa celular. Mejora de circulación. Reducción de inflamación. Aceleración de curación."
+    },
+    {
+      "id": "terapia-006-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Terapia PEMF?",
+      "answer": "Terapia PEMF puede beneficiar a pacientes con: Dolor crónico, lesiones musculares o articulares, inflamación crónica"
+    },
+    {
+      "id": "terapia-006-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Terapia PEMF?",
+      "answer": "El costo varia dependiendo de la cantidad y el tipo de terapias. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
+      "id": "terapia-007-info",
+      "category": "terapias",
+      "question": "¿Qué es la Cámara Hiperbárica?",
+      "answer": "Cámara Hiperbárica: Terapia con oxígeno en cámara presurizada respirando aire enriquecido con oxígeno presurizada a 1.4 atmosferas para estimular la regeneracion sistemica y el bienestar del paciente."
+    },
+    {
+      "id": "terapia-007-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Cámara Hiperbárica?",
+      "answer": "Beneficios de Cámara Hiperbárica: Acelera cicatrización de heridas. Reduce inflamación. Estimula regeneración celular. Fortalece sistema inmune. Mejora oxigenación tisular. Mejora del sueño y reducción del estrés."
+    },
+    {
+      "id": "terapia-007-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Cámara Hiperbárica?",
+      "answer": "Cámara Hiperbárica puede beneficiar a pacientes con: Heridas difíciles de sanar, lesiones, condiciones isquémicas, deterioro celular asociado al envejecimiento, afecciones con déficit de oxígeno, problemas neurológicos"
+    },
+    {
+      "id": "terapia-007-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Cámara Hiperbárica?",
+      "answer": "El costo varia dependiendo de la cantidad y duracion de las terapias. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
+      "id": "terapia-008-info",
+      "category": "terapias",
+      "question": "¿Qué es la Sauna infrarrojo lejano?",
+      "answer": "Sauna infrarrojo lejano: Sauna con radiación infrarrojo lejano (4–14 µm) emitida por tecnología cerámica para aliviar dolor, mejorar la circulacion, y promover la salud organica."
+    },
+    {
+      "id": "terapia-008-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Sauna infrarrojo lejano?",
+      "answer": "Beneficios de Sauna infrarrojo lejano: Alivio del dolor. Relajación profunda. Mejora circulación sanguínea. Reducción de inflamación. Recuperación acelerada. Eliminación de toxinas. Mejora del metabolismo celular."
+    },
+    {
+      "id": "terapia-008-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Sauna infrarrojo lejano?",
+      "answer": "Sauna infrarrojo lejano puede beneficiar a pacientes con: Dolores musculares o articulares crónicos, tensión muscular, mala circulación, problemas de inflamación general"
+    },
+    {
+      "id": "terapia-008-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Sauna infrarrojo lejano?",
+      "answer": "El costo varia dependiendo de la cantidad y el tipo de terapias. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
+      "id": "terapia-009-info",
+      "category": "terapias",
+      "question": "¿Qué es la Terapia circulatoria AVACEN?",
+      "answer": "Terapia circulatoria AVACEN: Dispositivo térmico de clase II aprobado por la FDA, AVACEN, usa calor controlado + presión negativa en la palma de la mano para mejorar la microcirculación, aliviar el dolor, estimular la curacion  y el bienestar del paciente."
+    },
+    {
+      "id": "terapia-009-beneficios",
+      "category": "terapias",
+      "question": "¿Cuáles son los beneficios de la Terapia circulatoria AVACEN?",
+      "answer": "Beneficios de Terapia circulatoria AVACEN: Alivio temporal del dolor muscular y articular. Mejora de la microcirculación. Reducción de la viscosidad sanguínea. Optimización del suministro de oxígeno."
+    },
+    {
+      "id": "terapia-009-enfermedades",
+      "category": "terapias",
+      "question": "¿Para qué enfermedades sirve la Terapia circulatoria AVACEN?",
+      "answer": "Terapia circulatoria AVACEN puede beneficiar a pacientes con: Problemas circulatorios (microcirculación deficiente), dolor muscular o articular leve, condiciones de mala perfusión"
+    },
+    {
+      "id": "terapia-009-costo",
+      "category": "precios",
+      "question": "¿Cuánto cuesta la Terapia circulatoria AVACEN?",
+      "answer": "El costo varia dependiendo de la cantidad y el tipo de terapias. Agende una consulta con uno de nuestros doctores para que le indiquemos cual seria la terapia optima para usted. Ofrecemos una amplia gama de opciones y una consulta sin compromiso de compra."
+    },
+    {
       "id": "faq-001",
-      "category": "pricing",
-      "question": "How much does ByteAI cost?",
-      "answer": "ByteAI has two plans: Pro at $99 per month with 10,000 API calls, and Business at $299 per month with unlimited calls. Both include 24/7 support and all features."
+      "category": "preguntas_frecuentes",
+      "question": "Que es CMR?",
+      "answer": "CMR es un centro medico que combina lo mejor de la medicina tradicional, con formulas avanzadas de la medicina herbolaria, y tratamientos innovadores de medicina regenerativa para ayudar a tratar enfermedades cronicas degenerativas, y problemas relacionados a la vejez."
     },
     {
       "id": "faq-002",
-      "category": "pricing",
-      "question": "Is there a free trial?",
-      "answer": "Yes! We offer a 14-day free trial with full access to all features. No credit card required to start."
+      "category": "preguntas_frecuentes",
+      "question": "Donde estan ubicados?",
+      "answer": "Hay 2 centros medicos en la isla. Uno en Caguas, y otro en Bayamon.  \n\nBayamon:\n51 Calle Dr. Santiago Veve\nBayamón, PR 00961\n\nCaguas:\nQ2 Av. Luis Muñoz Marín\nUrbanización Mariolga\nCaguas, PR 00725"
     },
     {
       "id": "faq-003",
-      "category": "features",
-      "question": "What can ByteAI do?",
-      "answer": "ByteAI is an AI assistant that can automate customer support, schedule appointments, answer questions, integrate with your systems, and handle phone calls 24/7."
+      "category": "preguntas_frecuentes",
+      "question": "Como llegar al Centro Medico de Caguas?",
+      "answer": "Para llegar al Centro Medico de Caguas:\n○ Salida #21 (sentido Este): Desde el Expreso 52, sigue hasta el puesto de\ngasolina Texaco, gira a la derecha en el semáforo, sigue hasta el próximo\nsemáforo, gira a la derecha, y te incorporas a la Calle Degetau. Sigue recto\nhasta el siguiente semáforo, cruza a la derecha, y en 600 pies está la clínica a la\nderecha.\n○ Salida #20 (sentido Este): Toma la Calle Degetau, sigue recto hasta el segundo\nsemáforo, cruza a la derecha, y en 600 pies está la clínica a la derecha."
     },
     {
       "id": "faq-004",
-      "category": "features",
-      "question": "Does ByteAI support phone calls?",
-      "answer": "Yes! ByteAI can answer incoming phone calls, have natural conversations with customers, and take actions like booking appointments or transferring to human support."
+      "category": "preguntas_frecuentes",
+      "question": "Como llegar al Centro Medico de Bayamón?",
+      "answer": "Para llegar al Centro Medico de Bayamón:\n○ Desde la Estación de Tren Urbano Bayamón: Camina hacia el sureste por la\nAvenida José Celso Barbosa, gira a la derecha en la Calle Dr. Santiago Veve. La\ndirección estará a tu derecha.\n○ Desde el Centro Comercial Plaza del Sol: Dirígete al noreste por la Avenida\nPrincipal hasta la Calle Dr. Santiago Veve, gira a la izquierda y sigue hasta el\nnúmero 51."
     },
     {
       "id": "faq-005",
-      "category": "features",
-      "question": "What languages does ByteAI support?",
-      "answer": "ByteAI currently supports English, Spanish, French, German, and Portuguese. More languages are being added regularly."
+      "category": "preguntas_frecuentes",
+      "question": "Tienen pagina web?",
+      "answer": "Si, en la siguiente pagina web podrá encontrar mas informacion sobre nosotros y nuestros servicios: www.centrodemedicinaregenerativa.com"
     },
     {
       "id": "faq-006",
-      "category": "technical",
-      "question": "What API keys do I need?",
-      "answer": "You'll need API keys from Anthropic (Claude), ElevenLabs (voice), and optionally OpenAI (embeddings). We provide detailed setup instructions in our documentation."
-    },
-    {
-      "id": "faq-007",
-      "category": "technical",
-      "question": "How do I integrate ByteAI with my website?",
-      "answer": "ByteAI provides REST APIs, WebSocket connections, and SDKs for JavaScript, Python, and other languages. Integration typically takes 1-2 hours with our quick start guide."
+      "category": "preguntas_frecuentes",
+      "question": "Acceptan plances medicos?",
+      "answer": "Los planes médicos no cubren nuestras terapias especializadas. No es que la clínica no los acepte; son los planes quienes no las cubren. Nuestra prioridad es ofrecer terapias innovadoras y de alta calidad que no siempre están cubiertas por las pólizas de seguro tradicionales. \n\nSin embargo, entendemos la importancia del plan médico y, al finalizar su tratamiento, le proporcionaremos una carta detallada que podrá presentar a su compañía de plan médico para solicitar el reembolso. Esto es lo que hacen nuestros pacientes. De esta manera, usted puede recibir la mejor atención posible sin las limitaciones impuestas por los planes médicos."
     },
     {
       "id": "faq-008",
-      "category": "technical",
-      "question": "Is ByteAI secure?",
-      "answer": "Yes! ByteAI uses enterprise-grade encryption, SOC 2 compliance, and stores no customer data by default. All API keys are encrypted and never logged."
+      "category": "preguntas_frecuentes",
+      "question": "Ofrecen acuerdos de pago?",
+      "answer": "Por lo general no, pero, despues de su consulta se pueden evaluar planes de pago en casos excepcionales."
     },
     {
       "id": "faq-009",
-      "category": "support",
-      "question": "How do I get help?",
-      "answer": "You can reach our support team 24/7 via email at support@byteai.com, live chat on our website, or by calling this phone number to speak with a human agent."
+      "category": "preguntas_frecuentes",
+      "question": "Tienen alguna promocion?",
+      "answer": "Todas las semanas tenemos diferentes promociones, para conocer mas sobre nuestras promociones puede llamar al +1 787 780 7575."
     },
     {
       "id": "faq-010",
-      "category": "support",
-      "question": "What are your support hours?",
-      "answer": "Our AI assistant is available 24/7. Human support is available Monday through Friday, 9 AM to 6 PM Eastern Time, with emergency support available nights and weekends."
-    },
-    {
-      "id": "faq-011",
-      "category": "account",
-      "question": "How do I upgrade my plan?",
-      "answer": "You can upgrade your plan anytime from your account dashboard. The change takes effect immediately and you're only charged the prorated difference."
-    },
-    {
-      "id": "faq-012",
-      "category": "account",
-      "question": "Can I cancel anytime?",
-      "answer": "Yes, you can cancel your subscription anytime with no penalties. You'll continue to have access until the end of your current billing period."
-    },
-    {
-      "id": "faq-013",
-      "category": "account",
-      "question": "How does billing work?",
-      "answer": "We bill monthly via credit card or ACH. Enterprise customers can request annual billing with a discount. All plans include detailed usage analytics."
-    },
-    {
-      "id": "faq-014",
-      "category": "appointments",
-      "question": "How do I schedule an appointment?",
-      "answer": "I can help you schedule an appointment right now! Just tell me your preferred date and time, and I'll book it for you."
-    },
-    {
-      "id": "faq-015",
-      "category": "appointments",
-      "question": "Can I reschedule my appointment?",
-      "answer": "Yes, you can reschedule by calling this number or through your account portal. Please provide at least 24 hours notice when possible."
-    },
-    {
-      "id": "faq-016",
-      "category": "appointments",
-      "question": "What are your appointment hours?",
-      "answer": "Appointments are available Monday through Friday, 9 AM to 5 PM Eastern Time. We also offer limited weekend slots for urgent needs."
+      "category": "preguntas_frecuentes",
+      "question": "Cual es su horario de operacion?",
+      "answer": "Horarios:\n- Consultas medicas: Lunes-Sábado, 7:00am - 12:00pm.\n- Terapias: Lunes-Sábado, 7:00am - 4:00pm."
     },
     {
       "id": "faq-017",
-      "category": "troubleshooting",
-      "question": "The AI isn't responding correctly",
-      "answer": "If the AI seems confused, try rephrasing your question more simply. If the issue persists, I can transfer you to a human support agent who can help."
+      "category": "preguntas_frecuentes",
+      "question": "Sus productos son cremas o polvos?",
+      "answer": "Ofrecemos 40 suplementos 100% naturales encapsulados formulados para apoyar la salud y bienestar del organismo ante una variedad de condiciones y enfermedades. Ademas ofrecemos los siguientes suplementos en polvo diluibles en agua: Easy (nutricion), Bamboo Diet (perdida de peso), Bamboo Detox (detoxificacion organica), Gorilla Protein (proteina natural vegana)."
     },
     {
       "id": "faq-018",
-      "category": "troubleshooting",
-      "question": "I'm getting API errors",
-      "answer": "API errors are usually due to incorrect credentials or rate limits. Check that your API keys are valid and you haven't exceeded your plan's limits. Contact support if issues persist."
+      "category": "preguntas_frecuentes",
+      "question": "Por que son tan costosos?",
+      "answer": "En CMR ofrecemos tratamientos personalizados a cada paciente. Los costos varian y dependen del tratamiento especifico que el paciente, guidao por uno de nuestros doctores, decide seguir. Lo invitamos a agendar una cita para tener una consulta con uno de nuestros doctores, sin compromiso."
     },
     {
       "id": "faq-019",
-      "category": "troubleshooting",
-      "question": "The voice quality is poor",
-      "answer": "Poor voice quality can be caused by network issues. Try using a better internet connection. If the problem continues, let me know and I'll create a support ticket."
+      "category": "preguntas_frecuentes",
+      "question": "Ofrecen consultas de telemedicina?",
+      "answer": "Por los momento no ofrecemos servicios de telemedicina. Es requerido que el paciente atienda a su consulta en persona para que un doctor lo atienda."
     },
     {
       "id": "faq-020",
-      "category": "technical",
-      "question": "What's the response time?",
-      "answer": "ByteAI typically responds in under 2 seconds from when you finish speaking. Response time depends on your internet connection and complexity of the question."
+      "category": "preguntas_frecuentes",
+      "question": "Que documentos debo llevar a mi cita?",
+      "answer": "Es importante que traiga  consigo cualquier informe médico relevante y los resultados de exámenes de laboratorio, si los tiene. Esto ayudará a que el médico tenga toda la información necesaria para atenderle mejor."
     },
     {
       "id": "faq-021",
-      "category": "features",
-      "question": "Can ByteAI transfer calls?",
-      "answer": "Yes! If you need to speak with a human or if I can't help with something, I can transfer your call to our support team immediately."
+      "category": "preguntas_frecuentes",
+      "question": "Pueden curar el cancer?",
+      "answer": "En nuestro centro no ofrecemos curas definitivas para el cáncer, pero nuestros tratamientos pueden ayudar a manejar síntomas y mejorar su calidad de vida. Contamos con terapias que pueden complementar su tratamiento actual."
     },
     {
       "id": "faq-022",
-      "category": "features",
-      "question": "Does ByteAI remember past conversations?",
-      "answer": "ByteAI remembers context within a single call session. For account-specific information, it can look up your history using your phone number or account ID."
+      "category": "preguntas_frecuentes",
+      "question": "Pueden curar X enfermedad (incurable)?",
+      "answer": "En nuestro centro no ofrecemos curas definitivas para X enfermedad, pero nuestros tratamientos pueden ayudar a manejar síntomas y mejorar su calidad de vida. Contamos con terapias que pueden complementar su tratamiento actual."
     },
     {
       "id": "faq-023",
-      "category": "pricing",
-      "question": "Are there setup fees?",
-      "answer": "No setup fees! You only pay the monthly subscription. We also provide free onboarding and setup assistance for all new customers."
-    },
-    {
-      "id": "faq-024",
-      "category": "features",
-      "question": "Can I customize ByteAI's responses?",
-      "answer": "Yes! You can customize the AI's personality, knowledge base, and responses through the dashboard. Enterprise plans include custom voice training."
-    },
-    {
-      "id": "faq-025",
-      "category": "technical",
-      "question": "Where is data stored?",
-      "answer": "Data is stored in US-based AWS data centers with encryption at rest and in transit. EU customers can request data residency in EU regions."
+      "category": "preguntas_frecuentes",
+      "question": "Ofrecen tratamientos para X condicion?",
+      "answer": "Ofrecemos tratamientos de alta calidad, sin efectos secundarios, que ayudan a combatir las\nsiguientes condiciones crónicas y mejorar la calidad de vida de pacientes que sufren de ellas:\n\n- Obesidad\n- Problemas circulatorios\n- Impotencia\n- Síndrome metabólico\n- Artritis y Osteoartritis\n- Diabetes y sus complicaciones\n- Problemas cardiovasculares\n- Insuficiencia renal\n- Hígado graso\n- Enfermedad del hígado\n- Enfermedad fibroquística de mama\n- Ovarios poliquísticos\n- Problemas de la menopausia y problemas de la mujer en general\n- Psoriasis\n- Dermatitis\n- Neuropatía\n- Retinopatía\n- Cáncer\n- Enfermedades inmunológicas\n- Defensas bajas\n- Anemia"
     }
   ]
 }
